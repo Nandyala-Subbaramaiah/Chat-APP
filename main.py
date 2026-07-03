@@ -1,13 +1,10 @@
 from fastapi import FastAPI
+from app.database.session import engine
+from app.database.base import Base
 
-from database import Base, engine
+# import all models (VERY IMPORTANT)
+from app.models import user, conversation, message
 
 app = FastAPI()
 
-# create tables
 Base.metadata.create_all(bind=engine)
-
-# Root route
-@app.get("/")
-def read_root():
-    return {"message": "Chat app is running!"}
