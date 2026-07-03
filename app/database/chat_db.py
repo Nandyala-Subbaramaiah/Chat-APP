@@ -4,7 +4,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 # 1. DATABASE URL (change this)
-DATABASE_URL = "postgresql://username:password@localhost:5432/chatdb"
+DATABASE_URL = "postgresql://postgres:root123@localhost:5432/chatdb"
 
 # 2. Engine (connects SQLAlchemy to DB)
 engine = create_engine(
