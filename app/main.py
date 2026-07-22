@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.database.chat_db import get_db
 
+
 from app.routes import users
 from app.routes import messages
 from app.routes import conversations
