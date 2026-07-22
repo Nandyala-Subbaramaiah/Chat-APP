@@ -4,9 +4,12 @@ from sqlalchemy.orm import Session
 
 from app.database.chat_db import get_db
 
+
 from app.routes import users
 from app.routes import messages
 from app.routes import conversations
+from app.routes import conversation_member
+
 
 
 app = FastAPI()
@@ -31,7 +34,9 @@ app.add_middleware(
 app.include_router(users.router)
 app.include_router(messages.router)
 app.include_router(conversations.router)
-
+app.include_router(
+    conversation_member.router
+)
 
 @app.get("/")
 def home():
