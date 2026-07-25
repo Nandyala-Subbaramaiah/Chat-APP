@@ -9,7 +9,7 @@ from app.routes import users
 from app.routes import messages
 from app.routes import conversations
 from app.routes import conversation_member
-
+from app.routes import websocket
 
 
 app = FastAPI()
@@ -36,6 +36,9 @@ app.include_router(messages.router)
 app.include_router(conversations.router)
 app.include_router(
     conversation_member.router
+)
+app.include_router(
+    websocket.router
 )
 
 @app.get("/")
