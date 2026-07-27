@@ -4,27 +4,22 @@ from fastapi import (
     WebSocketDisconnect,
 )
 
-from app.services.connectionmanager import (
-    ConnectionManager,
-)
-
+from app.services.connectionmanager import ConnectionManager
 
 router = APIRouter()
 
 manager = ConnectionManager()
 
 
-@router.websocket(
-    "/ws/{conversation_id}"
-)
+@router.websocket("/ws/{user_id}")
 async def websocket_endpoint(
     websocket: WebSocket,
-    conversation_id: int,
+    user_id: str,
 ):
 
     await manager.connect(
-        conversation_id,
-        websocket
+        user_id,
+        websocket,
     )
 
     try:
@@ -33,14 +28,21 @@ async def websocket_endpoint(
 
             data = await websocket.receive_json()
 
-            await manager.broadcast(
-                conversation_id,
-                data
+            receiver = data["to"]
+
+            message = {
+                "from": user_id,
+                "to": receiver,
+                "message": data["message"],
+            }
+
+            await manager.send_to_user(
+                receiver,
+                message,
             )
 
     except WebSocketDisconnect:
 
         manager.disconnect(
-            conversation_id,
-            websocket
+            user_id,
         )
