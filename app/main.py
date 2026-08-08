@@ -2,8 +2,9 @@ from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
-from app.database.chat_db import get_db
-
+from app.database.base import Base
+from app.database.chat_db import get_db, engine
+from app.models import Conversation, ConversationMember, Message, User
 
 from app.routes import users
 from app.routes import messages
@@ -13,6 +14,8 @@ from app.routes import websocket
 
 
 app = FastAPI()
+
+Base.metadata.create_all(bind=engine)
 
 
 # CORS configuration
