@@ -1,3 +1,5 @@
+import json
+
 from fastapi import (
     APIRouter,
     WebSocket,
@@ -31,7 +33,17 @@ async def websocket_endpoint(
 
         while True:
 
-            data = await websocket.receive_json()
+            try:
+                data = await websocket.receive_json()
+            except json.JSONDecodeError:
+                await websocket.send_json({
+                    "type": "ERROR",
+                    "message": "Invalid JSON payload"
+                })
+                continue
+
+            if not isinstance(data, dict):
+                continue
 
             await manager.broadcast(
                 conversation_id,
