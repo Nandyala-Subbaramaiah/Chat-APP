@@ -43,6 +43,7 @@ async def send_message(
     await manager.broadcast(
         data.conversation_id,
         payload,
+        user_id=data.sender_id,
     )
 
     return msg

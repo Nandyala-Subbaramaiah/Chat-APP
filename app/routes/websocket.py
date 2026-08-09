@@ -22,11 +22,13 @@ manager = ConnectionManager()
 async def websocket_endpoint(
     websocket: WebSocket,
     conversation_id: int,
+    user_id: int | None = None,
 ):
 
     await manager.connect(
         conversation_id,
-        websocket
+        websocket,
+        user_id=user_id,
     )
 
     try:
@@ -45,9 +47,12 @@ async def websocket_endpoint(
             if not isinstance(data, dict):
                 continue
 
+            incoming_user_id = data.get("user_id") or user_id
+
             await manager.broadcast(
                 conversation_id,
-                data
+                data,
+                user_id=incoming_user_id,
             )
 
     except WebSocketDisconnect:

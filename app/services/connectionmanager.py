@@ -1,4 +1,9 @@
+import json
+from typing import Any, Dict, List
+
 from fastapi import WebSocket
+
+from app.services.redis_service import pop_offline_messages, push_offline_message
 
 
 class ConnectionManager:
@@ -11,7 +16,8 @@ class ConnectionManager:
     async def connect(
         self,
         conversation_id: int,
-        websocket: WebSocket
+        websocket: WebSocket,
+        user_id: int | None = None,
     ):
 
         await websocket.accept()
@@ -25,6 +31,22 @@ class ConnectionManager:
         self.active_connections[
             conversation_id
         ].append(websocket)
+
+        if user_id is not None:
+            await self.send_offline_messages(websocket, user_id)
+
+
+    async def send_offline_messages(
+        self,
+        websocket: WebSocket,
+        user_id: int,
+    ):
+        queued_messages = pop_offline_messages(user_id)
+        for message in queued_messages:
+            try:
+                await websocket.send_json(message)
+            except Exception:
+                continue
 
 
     def disconnect(
@@ -47,7 +69,8 @@ class ConnectionManager:
     async def broadcast(
         self,
         conversation_id: int,
-        message: dict
+        message: dict,
+        user_id: int | None = None,
     ):
 
         connections = self.active_connections.get(
@@ -55,8 +78,16 @@ class ConnectionManager:
             []
         )
 
-        for connection in connections:
+        if not connections and user_id is not None:
+            push_offline_message(user_id, message)
+            return
 
-            await connection.send_json(
-                message
-            )
+        for connection in connections:
+            try:
+                await connection.send_json(
+                    message
+                )
+            except Exception:
+                if user_id is not None:
+                    push_offline_message(user_id, message)
+                continue
