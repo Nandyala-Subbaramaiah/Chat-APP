@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database.chat_db import get_db
 from app.models.message import Message
 from app.routes.websocket import manager
-from app.schemas.message import MessageCreate
+from app.schemas.message import MessageCreate, MessageResponse
 
 
 router = APIRouter(
@@ -13,10 +14,10 @@ router = APIRouter(
 )
 
 
-@router.post("/")
+@router.post("/", response_model=MessageResponse)
 async def send_message(
     data: MessageCreate,
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
 
     msg = Message(
@@ -26,8 +27,8 @@ async def send_message(
     )
 
     db.add(msg)
-    db.commit()
-    db.refresh(msg)
+    await db.commit()
+    await db.refresh(msg)
 
     payload = {
         "type": "NEW_MESSAGE",
@@ -49,13 +50,13 @@ async def send_message(
     return msg
 
 
-@router.get("/{conversation_id}")
-def get_messages(
+@router.get("/{conversation_id}", response_model=list[MessageResponse])
+async def get_messages(
     conversation_id:int,
-    db:Session=Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
 
-    return db.query(Message)\
-        .filter(
-            Message.conversation_id == conversation_id
-        ).all()
+    result = await db.execute(
+        select(Message).where(Message.conversation_id == conversation_id)
+    )
+    return result.scalars().all()

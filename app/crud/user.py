@@ -1,11 +1,12 @@
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.users import User
 from app.schemas.user import UserCreate
 
 
-def create_user(
-    db: Session,
+async def create_user(
+    db: AsyncSession,
     user: UserCreate
 ):
 
@@ -15,12 +16,13 @@ def create_user(
     )
 
     db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
+    await db.commit()
+    await db.refresh(new_user)
 
     return new_user
 
 
-def get_users(db: Session):
+async def get_users(db: AsyncSession):
 
-    return db.query(User).all()
+    result = await db.execute(select(User))
+    return result.scalars().all()

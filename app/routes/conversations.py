@@ -1,9 +1,13 @@
 from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database.chat_db import get_db
 from app.models.conversation import Conversation
 from app.models.conversation_member import ConversationMember
+from app.schemas.conversation import (
+    ConversationResponse,
+    ConversationStartResponse,
+)
 
 router = APIRouter(
     prefix="/conversations",
@@ -11,23 +15,23 @@ router = APIRouter(
 )
 
 
-@router.post("/")
-def create_conversation(
-    db:Session=Depends(get_db)
+@router.post("/", response_model=ConversationResponse)
+async def create_conversation(
+    db: AsyncSession = Depends(get_db)
 ):
 
     conversation = Conversation()
 
     db.add(conversation)
-    db.commit()
-    db.refresh(conversation)
+    await db.commit()
+    await db.refresh(conversation)
 
     return conversation
 
-@router.post("/start/{user_id}")
-def start_chat(
+@router.post("/start/{user_id}", response_model=ConversationStartResponse)
+async def start_chat(
     user_id: int,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     # current_user = Depends(get_current_user)
 ):
 
@@ -40,8 +44,8 @@ def start_chat(
     conversation = Conversation()
 
     db.add(conversation)
-    db.commit()
-    db.refresh(conversation)
+    await db.commit()
+    await db.refresh(conversation)
 
 
     # add current user
@@ -63,7 +67,7 @@ def start_chat(
         member2
     ])
 
-    db.commit()
+    await db.commit()
 
 
     return {

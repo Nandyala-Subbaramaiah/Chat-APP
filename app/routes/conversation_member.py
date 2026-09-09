@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database.chat_db import get_db
 from app.models.conversation_member import ConversationMember
+from app.schemas.conversation_member import ConversationMemberResponse
 
 
 router = APIRouter(
@@ -11,11 +12,11 @@ router = APIRouter(
 )
 
 
-@router.post("/")
-def add_user_to_conversation(
+@router.post("/", response_model=ConversationMemberResponse)
+async def add_user_to_conversation(
     conversation_id: int,
     user_id: int,
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
 
     member = ConversationMember(
@@ -24,8 +25,8 @@ def add_user_to_conversation(
     )
 
     db.add(member)
-    db.commit()
-    db.refresh(member)
+    await db.commit()
+    await db.refresh(member)
 
     return member
 

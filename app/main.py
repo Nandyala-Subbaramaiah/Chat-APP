@@ -1,9 +1,11 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.orm import Session
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database.base import Base
-from app.database.chat_db import get_db, engine
+from app.database.chat_db import get_db, init_db
 from app.models import Conversation, ConversationMember, Message, User
 
 from app.routes import users
@@ -13,9 +15,13 @@ from app.routes import conversation_member
 from app.routes import websocket
 
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    await init_db()
+    yield
 
-Base.metadata.create_all(bind=engine)
+
+app = FastAPI(lifespan=lifespan)
 
 
 # CORS configuration
@@ -52,7 +58,8 @@ def home():
 
 
 @app.get("/db-test")
-def db_test(db: Session = Depends(get_db)):
+async def db_test(db: AsyncSession = Depends(get_db)):
+    await db.execute(text("SELECT 1"))
     return {
         "message": "Database connected successfully 🚀"
     }
