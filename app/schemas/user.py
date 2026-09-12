@@ -5,6 +5,11 @@ from pydantic import BaseModel
 class UserCreate(BaseModel):
     username: str
     email: str
+    password: str | None = None
+
+
+class PasswordUpdate(BaseModel):
+    password: str
 
 
 class UserResponse(BaseModel):

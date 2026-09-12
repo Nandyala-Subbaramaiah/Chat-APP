@@ -1,4 +1,5 @@
 from collections.abc import AsyncGenerator
+from pathlib import Path
 
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
@@ -8,11 +9,10 @@ from sqlalchemy.ext.asyncio import (
 
 from app.database.base import Base
 
-DATABASE_URL = "sqlite+aiosqlite:///./chat.db"
+DB_PATH = Path(__file__).resolve().parents[2] / "chat.db"
+DATABASE_URL = f"sqlite+aiosqlite:///{DB_PATH.as_posix()}"
 
-engine = create_async_engine(
-    DATABASE_URL
-)
+engine = create_async_engine(DATABASE_URL)
 
 AsyncSessionLocal = async_sessionmaker(
     bind=engine,

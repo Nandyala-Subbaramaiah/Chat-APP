@@ -13,6 +13,7 @@ from app.routes import messages
 from app.routes import conversations
 from app.routes import conversation_member
 from app.routes import websocket
+from app.routes import auth
 
 
 @asynccontextmanager
@@ -49,7 +50,9 @@ app.include_router(
 app.include_router(
     websocket.router
 )
-
+app.include_router(
+    auth.router
+)
 @app.get("/")
 def home():
     return {
