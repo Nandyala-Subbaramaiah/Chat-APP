@@ -30,6 +30,9 @@ async def websocket_endpoint(
         websocket,
         user_id=user_id,
     )
+    await websocket.send_json(
+        {"type": "USER_ONLINE", "conversation_id": conversation_id}
+    )
 
     try:
 
@@ -45,6 +48,9 @@ async def websocket_endpoint(
                 continue
 
             if not isinstance(data, dict):
+                continue
+
+            if data.get("type") == "JOIN":
                 continue
 
             incoming_user_id = data.get("user_id") or user_id

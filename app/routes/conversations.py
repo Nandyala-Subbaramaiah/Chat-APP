@@ -36,36 +36,26 @@ async def start_chat(
 ):
 
     # TEMPORARY:
-    # replace this later with logged-in user
+    # replace this later with the logged-in user
     current_user_id = 1
 
-
-    # create conversation
     conversation = Conversation()
-
     db.add(conversation)
     await db.commit()
     await db.refresh(conversation)
 
-
-    # add current user
     member1 = ConversationMember(
         conversation_id=conversation.id,
         user_id=current_user_id
     )
+    db.add(member1)
 
-
-    # add selected user
-    member2 = ConversationMember(
-        conversation_id=conversation.id,
-        user_id=user_id
-    )
-
-
-    db.add_all([
-        member1,
-        member2
-    ])
+    if user_id != current_user_id:
+        member2 = ConversationMember(
+            conversation_id=conversation.id,
+            user_id=user_id
+        )
+        db.add(member2)
 
     await db.commit()
 
